@@ -1,0 +1,27 @@
+# Ambiente virtual e cache do Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Poetry
+poetry.toml
+
+# Variáveis de ambiente e segredos
+.env
+.env.local
+
+# Banco de dados local (se usarmos SQLite em algum ponto)
+*.db
+*.sqlite3
+
+# Editor
+.vscode/
+.idea/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

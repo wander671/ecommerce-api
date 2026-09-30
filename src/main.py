@@ -1,0 +1,146 @@
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy.orm import Session
+from typing import Optional
+
+from src.database import Base, engine, get_db
+from src.models import ProductModel
+
+# Cria as tabelas no banco se elas ainda não existirem.
+# Ele olha todas as classes que herdam de Base (ProductModel)
+# e cria a tabela correspondente. Roda uma vez ao iniciar o app.
+# Mais pra frente vamos trocar isso por migrations (Alembic).
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="E-commerce API",
+    description="CRUD simples de produtos, dados em memória",
+    version="0.1.0",
+)
+
+# ==========================================
+# SCHEMAS (Pydantic): formato dos dados na API
+# ==========================================
+
+class Product(BaseModel):
+    """Formato do produto na RESPOSTA da API."""
+
+    # from_attributes=True permite ao Pydantic ler dados de um
+    # objeto SQLAlchemy (ProductModel), e não só de dicionários.
+    # Sem isso, retornar um ProductModel daria erro.
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    name: str
+    price: float
+    description: Optional[str] = None  # Optional = pode não vir, então tem valor padrão None
+    stock: int = 0  # valor padrão 0 se não for informado
+
+
+class ProductCreate(BaseModel):
+    """Dados que o cliente envia para CRIAR um produto (sem id)."""
+    name: str
+    price: float
+    description: Optional[str] = None
+    stock: int = 0
+
+
+class ProductUpdate(BaseModel):
+    """Dados para ATUALIZAR: todos opcionais."""
+    name: Optional[str] = None
+    price: Optional[float] = None
+    description: Optional[str] = None
+    stock: Optional[int] = None
+
+# ==========================================
+# ENDPOINTS
+# ==========================================
+# Repare: agora são "def" e não "async def". Como o SQLAlchemy que
+# estamos usando é SÍNCRONO, ele bloquearia o servidor dentro de uma
+# função async. Com "def" normal, o FastAPI roda a função numa thread
+# separada e o servidor continua atendendo outras requisições.
+# Só voltamos ao "async def" quando migrarmos para SQLAlchemy async.
+
+@app.get("/health")
+async def health_check():
+    """Endpoint simples pra confirmar que a API está no ar."""
+    return {"status": "ok"}
+
+
+@app.get("/products", response_model=list[Product])
+async def list_products(db: Session = Depends(get_db)):
+    """
+    LISTAR produtos.
+
+    db: Session = Depends(get_db) é a injeção de dependência: o
+    FastAPI chama get_db(), recebe uma sessão aberta e a entrega
+    como argumento 'db'. Ao fim da requisição, fecha a sessão.
+    """
+    # db.query(ProductModel) monta um "SELECT * FROM products".
+    # .all() executa e devolve uma lista de objetos ProductModel
+    return db.query(ProductModel).all()
+
+
+@app.get("/products/{product_id}", response_model=Product)
+async def get_product(product_id: int, db: Session = Depends(get_db)):
+    """BUSCAR um produto por ID."""
+    # .filter(...) equivale ao WHERE do SQL.
+    # .first() devolve o primeiro resultado, ou None se não achar.
+    product = db.query(ProductModel). filter(ProductModel.id == product_id).first()
+
+    if product is None:
+        # HTTPException é como você retorna erros HTTP no FastAPI.
+        # status_code 404 = "não encontrado".
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+
+    return product
+
+
+@app.post("/products", response_model=Product, status_code=201)
+def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
+    """CRIAR um produto."""
+    # model_dump() transforma o objeto Pydantic num dicionário, e o
+    # ** "espalha" esse dicionário como argumentos nomeados:
+    # ProductModel(name=..., price=..., description=..., stock=
+
+    new_product = ProductModel(**product_data.model_dump())
+
+    db.add(new_product)         # marca para inserir (ainda não foi ao banco)
+    db.commit()                  # confirma a transação: INSERT acontece aqui
+    db.refresh(new_product)     # recarrega o objeto do banco para pegar o id gerado
+
+    return new_product
+
+
+@app.put("/products/{product_id}", response_model=Product)
+def update_product(product_id: int, product_data: ProductUpdate, db: Session = Depends(get_db)):
+
+    """ATUALIZAR um produto (parcialmente)."""
+    product = db.query(ProductModel).filter(ProductModel.id == product_id).first()
+
+    if product is None:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+
+    # exclude_unset=True: só os campos que o cliente realmente enviou.
+    update_data = product_data.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(product, key, value) # equivale a product.key = value, de forma dinâmica
+
+    db.commit()
+    db.refresh(product)
+
+    return product
+
+
+@app.delete("/products/{product_id}", status_code=204)
+def delete_product(product_id: int, db: Session= Depends(get_db)):
+    """DELETAR um produto."""
+    product = db.query(ProductModel).filter(ProductModel.id == product_id). first()
+
+    if product is None:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+
+    db.delete(product)
+    db.commit()
+    
