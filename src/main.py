@@ -35,6 +35,22 @@ class Product(BaseModel):
     price: float
     description: Optional[str] = None  # Optional = pode não vir, então tem valor padrão None
     stock: int = 0  # valor padrão 0 se não for informado
+    category_id: Optional[int] = None # categoria pode ser nula (sem categoria)
+
+class Category(BaseModel):
+    """Formato da categoria na resposta da API."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    description: Optional[str] = None
+
+class CategoryCreate(BaseModel):
+    """Dados que o cliente envia para CRIAR uma categoria (sem id)."""
+    name: str
+    description: Optional[str] = None
+    stock: int = 0
+    category_id: Optional[int] = None
 
 
 class ProductCreate(BaseModel):

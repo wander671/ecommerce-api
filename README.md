@@ -16,11 +16,18 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 
 ## 📋 Funcionalidades
 
+**Produtos**
 - ✅ Listar produtos
 - ✅ Buscar produto por ID
 - ✅ Criar produto
 - ✅ Atualizar produto (parcialmente)
 - ✅ Deletar produto
+
+**Categorias**
+- ✅ Modelagem com relacionamento 1:N (uma categoria possui vários produtos)
+- 🔄 Endpoints de CRUD em desenvolvimento
+
+**Geral**
 - ✅ Documentação interativa automática (Swagger UI)
 - ✅ Persistência real em PostgreSQL
 
@@ -75,9 +82,14 @@ http://localhost:8000/docs
 Este projeto está sendo construído em níveis progressivos de complexidade, como forma de estudo aprofundado de arquitetura de software.
 
 - [x] **Nível Estágio** — CRUD básico com dados em memória
-- [x] **Nível Júnior** — Persistência real com PostgreSQL + SQLAlchemy (você está aqui)
-- [ ] **Nível Pleno** — Autenticação JWT, relacionamentos entre tabelas (usuários, pedidos, carrinho), testes automatizados
-- [ ] **Nível Sênior** — Arquitetura em camadas (Clean Architecture), operações assíncronas, filas de mensagens, cache, observabilidade
+- [x] **Nível Júnior** — Persistência real com PostgreSQL + SQLAlchemy
+- [ ] **Nível Pleno** — Em andamento 🚧
+  - [x] Modelagem de relacionamento entre tabelas (Produtos ↔ Categorias)
+  - [ ] Endpoints CRUD de categorias
+  - [ ] Autenticação JWT (usuários)
+  - [ ] Carrinho e pedidos
+  - [ ] Testes automatizados
+- [ ] **Nível Sênior** — Arquitetura em camadas (Clean Architecture), operações assíncronas, filas de mensagens, cache, observabilidade, migrations com Alembic
 
 ## 🧠 Aprendizados deste nível
 
@@ -86,6 +98,8 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - Containerização de banco de dados com Docker Compose
 - Modelagem de dados com SQLAlchemy (models) e validação com Pydantic (schemas)
 - Debugging de problemas reais de ambiente (conflito de portas, autenticação de banco)
+- Relacionamentos entre tabelas no SQLAlchemy (`ForeignKey` e `relationship`)
+- Limitação do `Base.metadata.create_all()`: ele cria tabelas novas, mas não altera tabelas existentes — motivo pelo qual ferramentas de migration (como Alembic) são necessárias em projetos reais
 
 ## 👤 Autor
 
