@@ -25,7 +25,9 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 
 **Categorias**
 - ✅ Modelagem com relacionamento 1:N (uma categoria possui vários produtos)
-- 🔄 Endpoints de CRUD em desenvolvimento
+- ✅ Listar, buscar, criar e deletar categorias
+- ✅ Validação: produto só pode ser criado com categoria existente
+- 🐛 Bloqueio de exclusão de categoria com produtos (em correção)
 
 **Geral**
 - ✅ Documentação interativa automática (Swagger UI)
@@ -76,6 +78,10 @@ http://localhost:8000/docs
 | POST   | `/products`            | Cria um novo produto          |
 | PUT    | `/products/{id}`       | Atualiza um produto           |
 | DELETE | `/products/{id}`       | Remove um produto             |
+| GET    | `/categories`          | Lista todas as categorias     |
+| GET    | `/categories/{id}`     | Busca uma categoria por ID    |
+| POST   | `/categories`          | Cria uma nova categoria       |
+| DELETE | `/categories/{id}`     | Remove uma categoria          |
 
 ## 🗺️ Roadmap de evolução
 
@@ -84,8 +90,9 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - [x] **Nível Estágio** — CRUD básico com dados em memória
 - [x] **Nível Júnior** — Persistência real com PostgreSQL + SQLAlchemy
 - [ ] **Nível Pleno** — Em andamento 🚧
-  - [x] Modelagem de relacionamento entre tabelas (Produtos ↔ Categorias)
-  - [ ] Endpoints CRUD de categorias
+  - [x] Relacionamento entre tabelas (Produtos ↔ Categorias)
+  - [x] Endpoints de categorias (listar, buscar, criar, deletar)
+  - [ ] Proteção contra exclusão de categoria com produtos (409)
   - [ ] Autenticação JWT (usuários)
   - [ ] Carrinho e pedidos
   - [ ] Testes automatizados
@@ -100,6 +107,7 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - Debugging de problemas reais de ambiente (conflito de portas, autenticação de banco)
 - Relacionamentos entre tabelas no SQLAlchemy (`ForeignKey` e `relationship`)
 - Limitação do `Base.metadata.create_all()`: ele cria tabelas novas, mas não altera tabelas existentes — motivo pelo qual ferramentas de migration (como Alembic) são necessárias em projetos reais
+- Schemas Pydantic de entrada descartam em silêncio campos não declarados: se `category_id` não está no schema, o valor enviado simplesmente some, sem erro
 
 ## 👤 Autor
 

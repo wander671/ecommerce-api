@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from src.database import Base, engine, get_db
-from src.models import ProductModel
+from src.models import ProductModel, CategoryModel
 
 # Cria as tabelas no banco se elas ainda não existirem.
 # Ele olha todas as classes que herdam de Base (ProductModel)
@@ -49,17 +49,14 @@ class CategoryCreate(BaseModel):
     """Dados que o cliente envia para CRIAR uma categoria (sem id)."""
     name: str
     description: Optional[str] = None
-    stock: int = 0
-    category_id: Optional[int] = None
-
-
+        
 class ProductCreate(BaseModel):
     """Dados que o cliente envia para CRIAR um produto (sem id)."""
     name: str
     price: float
     description: Optional[str] = None
     stock: int = 0
-
+    category_id: Optional[int] = None
 
 class ProductUpdate(BaseModel):
     """Dados para ATUALIZAR: todos opcionais."""
@@ -115,9 +112,13 @@ async def get_product(product_id: int, db: Session = Depends(get_db)):
 @app.post("/products", response_model=Product, status_code=201)
 def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
     """CRIAR um produto."""
-    # model_dump() transforma o objeto Pydantic num dicionário, e o
-    # ** "espalha" esse dicionário como argumentos nomeados:
-    # ProductModel(name=..., price=..., description=..., stock=
+    # Se o cliente informou uma categoria, ela precisa existir.
+    if product_data.category_id is not None:
+        category = db.query(CategoryModel).filter(
+            CategoryModel.id == product_data.category_id
+        ).first()
+        if category is None:
+            raise HTTPException(status_code=400, detail="Categoria não existe")
 
     new_product = ProductModel(**product_data.model_dump())
 
@@ -149,14 +150,63 @@ def update_product(product_id: int, product_data: ProductUpdate, db: Session = D
     return product
 
 
-@app.delete("/products/{product_id}", status_code=204)
-def delete_product(product_id: int, db: Session= Depends(get_db)):
-    """DELETAR um produto."""
-    product = db.query(ProductModel).filter(ProductModel.id == product_id). first()
+@app.delete("/categories/{category_id}", status_code=204)
+def delete_category(category_id: int, db: Session = Depends(get_db)):
+    """DELETAR uma categoria."""
+    category = db.query(CategoryModel).filter(CategoryModel.id == category_id).first()
 
-    if product is None:
-        raise HTTPException(status_code=404, detail="Produto não encontrado")
+    if category is None:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
 
-    db.delete(product)
+    db.delete(category)
     db.commit()
-    
+
+
+@app.get("/categories", response_model=list[Category])
+def list_categories(db: Session = Depends(get_db)):
+    """LISTAR categorias."""
+    return db.query(CategoryModel).all()
+
+
+@app.get("/categories/{category_id}", response_model=Category)
+def get_category(category_id: int, db: Session = Depends(get_db)):
+    """BUSCAR uma categoria por ID."""
+    category = db.query(CategoryModel).filter(CategoryModel.id == category_id).first()
+
+    if category is None:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+
+    return category
+
+
+@app.post("/categories", response_model=Category, status_code=201)
+def create_category(category_data: CategoryCreate, db: Session = Depends(get_db)):
+    """CRIAR uma categoria."""
+    new_category = CategoryModel(**category_data.model_dump())
+
+    db.add(new_category)
+    db.commit()
+    db.refresh(new_category)
+
+    return new_category
+
+
+@app.delete("/categories/{category_id}", status_code=204)
+def delete_category(category_id: int, db: Session = Depends(get_db)):
+    """DELETAR uma categoria."""
+    category = db.query(CategoryModel).filter(CategoryModel.id == category_id).first()
+
+    if category is None:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+
+    # category.products usa o relationship: devolve a lista de produtos
+    # dessa categoria. Lista vazia = False, então só entra no if se houver produtos.
+    if category.products:
+        raise HTTPException(
+            status_code=409,
+            detail="Categoria não pode ser deletada: existem produtos associados a ela"
+        )
+
+    db.delete(category)
+    db.commit()
+
