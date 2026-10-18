@@ -49,7 +49,12 @@ class CategoryCreate(BaseModel):
     """Dados que o cliente envia para CRIAR uma categoria (sem id)."""
     name: str
     description: Optional[str] = None
-        
+
+class CategoryUpdate(BaseModel):
+    """Dados para ATUALIZAR uma categoria: todos opcionais."""
+    name: Optional[str] = None
+    description: Optional[str] = None
+
 class ProductCreate(BaseModel):
     """Dados que o cliente envia para CRIAR um produto (sem id)."""
     name: str
@@ -64,6 +69,7 @@ class ProductUpdate(BaseModel):
     price: Optional[float] = None
     description: Optional[str] = None
     stock: Optional[int] = None
+    category_id: Optional[int] = None
 
 # ==========================================
 # ENDPOINTS
@@ -150,15 +156,15 @@ def update_product(product_id: int, product_data: ProductUpdate, db: Session = D
     return product
 
 
-@app.delete("/categories/{category_id}", status_code=204)
-def delete_category(category_id: int, db: Session = Depends(get_db)):
-    """DELETAR uma categoria."""
-    category = db.query(CategoryModel).filter(CategoryModel.id == category_id).first()
+@app.delete("/products/{product_id}", status_code=204)
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    """DELETAR um produto."""
+    product = db.query(ProductModel).filter(ProductModel.id == product_id).first()
 
-    if category is None:
-        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    if product is None:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
 
-    db.delete(category)
+    db.delete(product)
     db.commit()
 
 
@@ -172,11 +178,44 @@ def list_categories(db: Session = Depends(get_db)):
 def get_category(category_id: int, db: Session = Depends(get_db)):
     """BUSCAR uma categoria por ID."""
     category = db.query(CategoryModel).filter(CategoryModel.id == category_id).first()
+    
+    if category is None:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    
+    return category
+
+@app.put("/categories/{category_id}", response_model=Category)
+def update_category(
+    category_id: int, category_data: CategoryUpdate, db: Session = Depends(get_db)
+):
+    """ATUALIZAR uma categoria (parcialmente)."""
+    category = db.query(CategoryModel).filter(CategoryModel.id == category_id).first()
 
     if category is None:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
 
+    update_data = category_data.model_dump(exclude_unset=True)
+
+    new_name = update_data.get("name")
+    if new_name is not None:
+        duplicate = db.query(CategoryModel).filter(
+            CategoryModel.name == new_name,
+            CategoryModel.id != category_id,
+        ).first()
+        if duplicate:
+            raise HTTPException(
+                status_code=409,
+                detail="Já existe uma categoria com esse nome",
+            )
+
+    for key, value in update_data.items():
+        setattr(category, key, value)
+
+    db.commit()
+    db.refresh(category)
+
     return category
+
 
 
 @app.post("/categories", response_model=Category, status_code=201)
@@ -190,23 +229,17 @@ def create_category(category_data: CategoryCreate, db: Session = Depends(get_db)
 
     return new_category
 
-
 @app.delete("/categories/{category_id}", status_code=204)
 def delete_category(category_id: int, db: Session = Depends(get_db)):
-    """DELETAR uma categoria."""
+    """Deletar uma categoria. Só é permitido se não houver produtos associados."""
     category = db.query(CategoryModel).filter(CategoryModel.id == category_id).first()
-
     if category is None:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
 
-    # category.products usa o relationship: devolve a lista de produtos
-    # dessa categoria. Lista vazia = False, então só entra no if se houver produtos.
-    if category.products:
-        raise HTTPException(
-            status_code=409,
-            detail="Categoria não pode ser deletada: existem produtos associados a ela"
-        )
+    # Verificar se há produtos associados
+    products = db.query(ProductModel).filter(ProductModel.category_id == category_id).all()
+    if products:
+        raise HTTPException(status_code=409, detail="Não é possível excluir uma categoria que possui produtos associados")
 
     db.delete(category)
     db.commit()
-

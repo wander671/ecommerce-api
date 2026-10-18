@@ -25,9 +25,10 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 
 **Categorias**
 - ✅ Modelagem com relacionamento 1:N (uma categoria possui vários produtos)
-- ✅ Listar, buscar, criar e deletar categorias
+- ✅ Listar, buscar, criar, atualizar e deletar categorias
+- ✅ Nome de categoria único (conflito retorna 409 com mensagem clara)
 - ✅ Validação: produto só pode ser criado com categoria existente
-- 🐛 Bloqueio de exclusão de categoria com produtos (em correção)
+- 🔄 Bloqueio de exclusão de categoria com produtos (implementado, em validação)
 
 **Geral**
 - ✅ Documentação interativa automática (Swagger UI)
@@ -82,6 +83,7 @@ http://localhost:8000/docs
 | GET    | `/categories/{id}`     | Busca uma categoria por ID    |
 | POST   | `/categories`          | Cria uma nova categoria       |
 | DELETE | `/categories/{id}`     | Remove uma categoria          |
+| PUT    | `/categories/{id}`     | Atualiza uma categoria        |
 
 ## 🗺️ Roadmap de evolução
 
@@ -91,6 +93,7 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - [x] **Nível Júnior** — Persistência real com PostgreSQL + SQLAlchemy
 - [ ] **Nível Pleno** — Em andamento 🚧
   - [x] Relacionamento entre tabelas (Produtos ↔ Categorias)
+  - [x] CRUD completo de categorias
   - [x] Endpoints de categorias (listar, buscar, criar, deletar)
   - [ ] Proteção contra exclusão de categoria com produtos (409)
   - [ ] Autenticação JWT (usuários)
@@ -108,6 +111,8 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - Relacionamentos entre tabelas no SQLAlchemy (`ForeignKey` e `relationship`)
 - Limitação do `Base.metadata.create_all()`: ele cria tabelas novas, mas não altera tabelas existentes — motivo pelo qual ferramentas de migration (como Alembic) são necessárias em projetos reais
 - Schemas Pydantic de entrada descartam em silêncio campos não declarados: se `category_id` não está no schema, o valor enviado simplesmente some, sem erro
+- Duas funções com a mesma rota no FastAPI não geram erro: a primeira declarada responde e a outra nunca é chamada
+- Regras de negócio na API (409 com mensagem clara) complementam as restrições do banco (`unique=True`), que sozinhas só geram erro 500 genérico
 
 ## 👤 Autor
 
