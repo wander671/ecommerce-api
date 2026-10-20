@@ -13,6 +13,7 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 - **[PostgreSQL](https://www.postgresql.org/)** — banco de dados relacional
 - **[Docker](https://www.docker.com/)** — containerização do banco de dados
 - **[Poetry](https://python-poetry.org/)** — gerenciamento de dependências
+- **[bcrypt](https://pypi.org/project/bcrypt/)** — hash seguro de senhas
 
 ## 📋 Funcionalidades
 
@@ -28,7 +29,13 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 - ✅ Listar, buscar, criar, atualizar e deletar categorias
 - ✅ Nome de categoria único (conflito retorna 409 com mensagem clara)
 - ✅ Validação: produto só pode ser criado com categoria existente
-- 🔄 Bloqueio de exclusão de categoria com produtos (implementado, em validação)
+- ✅ Bloqueio de exclusão de categoria com produtos (retorna 409)
+
+**Usuários**
+- ✅ Cadastro de usuário (`POST /users`), com e-mail normalizado em minúsculas
+- ✅ Senha guardada como hash bcrypt, nunca em texto puro
+- ✅ A resposta da API nunca devolve a senha nem o hash
+- 🔄 Validações do cadastro (e-mail repetido, senha curta, e-mail inválido) em teste
 
 **Geral**
 - ✅ Documentação interativa automática (Swagger UI)
@@ -84,6 +91,7 @@ http://localhost:8000/docs
 | POST   | `/categories`          | Cria uma nova categoria       |
 | DELETE | `/categories/{id}`     | Remove uma categoria          |
 | PUT    | `/categories/{id}`     | Atualiza uma categoria        |
+| POST   | `/users`               | Cadastra um novo usuário      |
 
 ## 🗺️ Roadmap de evolução
 
@@ -92,11 +100,10 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - [x] **Nível Estágio** — CRUD básico com dados em memória
 - [x] **Nível Júnior** — Persistência real com PostgreSQL + SQLAlchemy
 - [ ] **Nível Pleno** — Em andamento 🚧
-  - [x] Relacionamento entre tabelas (Produtos ↔ Categorias)
-  - [x] CRUD completo de categorias
-  - [x] Endpoints de categorias (listar, buscar, criar, deletar)
-  - [ ] Proteção contra exclusão de categoria com produtos (409)
-  - [ ] Autenticação JWT (usuários)
+    - [x] Relacionamento entre tabelas (Produtos ↔ Categorias)
+  - [x] CRUD completo de categorias, com bloqueio de exclusão
+  - [x] Cadastro de usuários com hash de senha
+  - [ ] Login e autenticação JWT
   - [ ] Carrinho e pedidos
   - [ ] Testes automatizados
 - [ ] **Nível Sênior** — Arquitetura em camadas (Clean Architecture), operações assíncronas, filas de mensagens, cache, observabilidade, migrations com Alembic
@@ -113,6 +120,8 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - Schemas Pydantic de entrada descartam em silêncio campos não declarados: se `category_id` não está no schema, o valor enviado simplesmente some, sem erro
 - Duas funções com a mesma rota no FastAPI não geram erro: a primeira declarada responde e a outra nunca é chamada
 - Regras de negócio na API (409 com mensagem clara) complementam as restrições do banco (`unique=True`), que sozinhas só geram erro 500 genérico
+- O `create_all()` não corrige tabelas já criadas: se uma tabela nasce com estrutura incompleta, é preciso recriá-la
+- Senhas são guardadas com hash bcrypt e salt, e o `response_model` do FastAPI impede que o hash apareça nas respostas
 
 ## 👤 Autor
 

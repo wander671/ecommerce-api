@@ -1,10 +1,12 @@
 from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from sqlalchemy.orm import Session
 from typing import Optional
 
 from src.database import Base, engine, get_db
-from src.models import ProductModel, CategoryModel
+from src.models import ProductModel, CategoryModel, UserModel
+from src.security import hash_password
+
 
 # Cria as tabelas no banco se elas ainda não existirem.
 # Ele olha todas as classes que herdam de Base (ProductModel)
@@ -54,6 +56,23 @@ class CategoryUpdate(BaseModel):
     """Dados para ATUALIZAR uma categoria: todos opcionais."""
     name: Optional[str] = None
     description: Optional[str] = None
+
+class UserCreate(BaseModel):
+    """Dados que o cliente envia para CRIAR um usuário (sem id). """
+
+    #EmailStr rejeita automaticamente textos que não são e-mails.
+    email: EmailStr
+   
+    password: str = Field(min_length=8, max_length=72)  # senha entre 8 e 72 caracteres'
+
+
+class User(BaseModel):
+    """Formato do usuário na resposta da API (sem senha)."""
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    email: EmailStr
+    is_active: bool = True # Valor padrão True, mas pode ser False se o usuário for desativado.
+
 
 class ProductCreate(BaseModel):
     """Dados que o cliente envia para CRIAR um produto (sem id)."""
@@ -243,3 +262,36 @@ def delete_category(category_id: int, db: Session = Depends(get_db)):
 
     db.delete(category)
     db.commit()
+
+
+@app.post("/users", response_model=User, status_code=201)
+def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
+    """CADASTRAR um usuário."""
+    # Segunda proteção do limite do bcrypt, desta vez contando bytes.
+    if len(user_data.password.encode("utf-8")) > 72:
+        raise HTTPException(status_code=422, detail="Senha muito longa")
+
+    # Guardamos o e-mail em minúsculas. Sem isso, "Ana@x.com" e
+    # "ana@x.com" seriam duas contas diferentes para o banco.
+    email = user_data.email.lower()
+
+    # Se o e-mail já existe, respondemos 409 (conflito) com uma
+    # mensagem clara, em vez de deixar o banco estourar um erro 500.
+    existing = db.query(UserModel).filter(UserModel.email == email).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="E-mail já cadastrado")
+
+    # Repare: a senha digitada NUNCA vai para o banco. Passamos
+    # pelo hash_password e guardamos só o resultado embaralhado.
+    new_user = UserModel(
+        email=email,
+        hashed_password=hash_password(user_data.password),
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    # O response_model=User filtra a resposta: devolve só id, email
+    # e is_active. O hashed_password fica de fora.
+    return new_user
