@@ -35,7 +35,7 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 - ✅ Cadastro de usuário (`POST /users`), com e-mail normalizado em minúsculas
 - ✅ Senha guardada como hash bcrypt, nunca em texto puro
 - ✅ A resposta da API nunca devolve a senha nem o hash
-- 🔄 Validações do cadastro (e-mail repetido, senha curta, e-mail inválido) em teste
+- ✅ Validações do cadastro: e-mail repetido (409), senha curta e e-mail inválido (422)
 
 **Geral**
 - ✅ Documentação interativa automática (Swagger UI)
