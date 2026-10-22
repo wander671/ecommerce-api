@@ -36,6 +36,8 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 - ✅ Senha guardada como hash bcrypt, nunca em texto puro
 - ✅ A resposta da API nunca devolve a senha nem o hash
 - ✅ Validações do cadastro: e-mail repetido (409), senha curta e e-mail inválido (422)
+- ✅ Configurações sensíveis (chave secreta) lidas de arquivo `.env`, fora do código
+- 🔄 Login e autenticação com token JWT (em desenvolvimento)
 
 **Geral**
 - ✅ Documentação interativa automática (Swagger UI)
@@ -62,12 +64,23 @@ cd ecommerce
 poetry install
 ```
 
-3. Suba o banco de dados PostgreSQL:
+3. Crie o arquivo `.env` na raiz do projeto (ele não vai para o GitHub, porque guarda segredos):
+```
+SECRET_KEY=cole_aqui_uma_chave_aleatoria
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+Para gerar uma chave aleatória:
+```bash
+poetry run python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+4. Suba o banco de dados PostgreSQL:
 ```bash
 docker compose up -d
 ```
 
-4. Rode a aplicação:
+5. Rode a aplicação:
 ```bash
 poetry run python run.py
 ```
@@ -103,7 +116,11 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
     - [x] Relacionamento entre tabelas (Produtos ↔ Categorias)
   - [x] CRUD completo de categorias, com bloqueio de exclusão
   - [x] Cadastro de usuários com hash de senha
+  - [x] Configuração segura da chave secreta via `.env`
   - [ ] Login e autenticação JWT
+  - [ ] Geração do token
+  - [ ] Rota de login
+  - [ ] Proteção de rotas
   - [ ] Carrinho e pedidos
   - [ ] Testes automatizados
 - [ ] **Nível Sênior** — Arquitetura em camadas (Clean Architecture), operações assíncronas, filas de mensagens, cache, observabilidade, migrations com Alembic
@@ -122,6 +139,9 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - Regras de negócio na API (409 com mensagem clara) complementam as restrições do banco (`unique=True`), que sozinhas só geram erro 500 genérico
 - O `create_all()` não corrige tabelas já criadas: se uma tabela nasce com estrutura incompleta, é preciso recriá-la
 - Senhas são guardadas com hash bcrypt e salt, e o `response_model` do FastAPI impede que o hash apareça nas respostas
+- Segredos (como a chave de assinatura de tokens) ficam em `.env`, protegido pelo `.gitignore`, e nunca no código
+- Estrutura de um hash bcrypt: versão, custo, salt e hash. O salt fica dentro do próprio hash
+- Um token JWT tem conteúdo legível. A segurança vem da assinatura, que impede alterações
 
 ## 👤 Autor
 
