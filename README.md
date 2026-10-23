@@ -37,6 +37,7 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 - ✅ A resposta da API nunca devolve a senha nem o hash
 - ✅ Validações do cadastro: e-mail repetido (409), senha curta e e-mail inválido (422)
 - ✅ Configurações sensíveis (chave secreta) lidas de arquivo `.env`, fora do código
+- ✅ Geração de token JWT assinado, com tempo de expiração configurável
 - 🔄 Login e autenticação com token JWT (em desenvolvimento)
 
 **Geral**
@@ -118,7 +119,7 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
   - [x] Cadastro de usuários com hash de senha
   - [x] Configuração segura da chave secreta via `.env`
   - [ ] Login e autenticação JWT
-  - [ ] Geração do token
+  - [x] Geração do token
   - [ ] Rota de login
   - [ ] Proteção de rotas
   - [ ] Carrinho e pedidos
@@ -142,6 +143,8 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - Segredos (como a chave de assinatura de tokens) ficam em `.env`, protegido pelo `.gitignore`, e nunca no código
 - Estrutura de um hash bcrypt: versão, custo, salt e hash. O salt fica dentro do próprio hash
 - Um token JWT tem conteúdo legível. A segurança vem da assinatura, que impede alterações
+- O conteúdo de um JWT usa campos padrão: `sub` (de quem é o token) e `exp` (quando expira)
+- Datas com fuso explícito (`timezone.utc`) evitam bugs de horário local versus universal
 
 ## 👤 Autor
 
