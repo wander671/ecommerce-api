@@ -74,6 +74,17 @@ class User(BaseModel):
     is_active: bool = True # Valor padrão True, mas pode ser False se o usuário for desativado.
 
 
+class UserLogin(BaseModel):
+    """Dados que o cliente envia para Fazer Login."""
+    email: EmailStr
+    password: str
+
+class Token(BaseModel):
+    """Formato da RESPOSTA do login: o token de acesso."""
+    access_token: str
+    token_type: str = "bearer"
+
+
 class ProductCreate(BaseModel):
     """Dados que o cliente envia para CRIAR um produto (sem id)."""
     name: str

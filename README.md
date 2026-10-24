@@ -120,6 +120,7 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
   - [x] Configuração segura da chave secreta via `.env`
   - [ ] Login e autenticação JWT
   - [x] Geração do token
+  - [x] Schemas de login e de resposta do token
   - [ ] Rota de login
   - [ ] Proteção de rotas
   - [ ] Carrinho e pedidos
@@ -145,6 +146,8 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - Um token JWT tem conteúdo legível. A segurança vem da assinatura, que impede alterações
 - O conteúdo de um JWT usa campos padrão: `sub` (de quem é o token) e `exp` (quando expira)
 - Datas com fuso explícito (`timezone.utc`) evitam bugs de horário local versus universal
+- No login, a senha não tem tamanho mínimo no schema: a regra de senha forte vale no cadastro, e no login a API só confere se a senha bate, sem revelar as regras do sistema
+- "Bearer" significa "portador": quem porta o token é aceito, e ele viaja no cabeçalho `Authorization`
 
 ## 👤 Autor
 
