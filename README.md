@@ -119,13 +119,22 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
   - [x] Cadastro de usuários com hash de senha
   - [x] Configuração segura da chave secreta via `.env`
   - [ ] Login e autenticação JWT
+  - [x] Configuração segura da chave secreta via `.env`
   - [x] Geração do token
   - [x] Schemas de login e de resposta do token
+  - [x] Rota de login: busca do usuário pelo e-mail
   - [ ] Rota de login
   - [ ] Proteção de rotas
   - [ ] Carrinho e pedidos
   - [ ] Testes automatizados
 - [ ] **Nível Sênior** — Arquitetura em camadas (Clean Architecture), operações assíncronas, filas de mensagens, cache, observabilidade, migrations com Alembic
+- [ ] **Ideias futuras**
+  - [ ] Chatbot de atendimento com IA
+    - Rota `POST /chat`, com a chamada ao modelo feita no backend
+    - Chave de API guardada no `.env`
+    - Ferramentas de leitura: busca de produtos, estoque e status do pedido do próprio cliente
+    - Depende de: login (JWT), carrinho e pedidos
+    - Limite de mensagens por usuário, para controlar custo
 
 ## 🧠 Aprendizados deste nível
 
@@ -148,6 +157,8 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - Datas com fuso explícito (`timezone.utc`) evitam bugs de horário local versus universal
 - No login, a senha não tem tamanho mínimo no schema: a regra de senha forte vale no cadastro, e no login a API só confere se a senha bate, sem revelar as regras do sistema
 - "Bearer" significa "portador": quem porta o token é aceito, e ele viaja no cabeçalho `Authorization`
+- O login responde com a mesma mensagem para e-mail inexistente e para senha errada, para a API não revelar quais e-mails estão cadastrados
+- Login usa `POST`, para os dados não irem na URL e ficarem registrados em históricos e logs
 
 ## 👤 Autor
 

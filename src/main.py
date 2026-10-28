@@ -5,7 +5,7 @@ from typing import Optional
 
 from src.database import Base, engine, get_db
 from src.models import ProductModel, CategoryModel, UserModel
-from src.security import hash_password
+from src.security import hash_password, verify_password, create_access_token
 
 
 # Cria as tabelas no banco se elas ainda não existirem.
@@ -306,3 +306,16 @@ def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
     # O response_model=User filtra a resposta: devolve só id, email
     # e is_active. O hashed_password fica de fora.
     return new_user
+
+
+@app.post("/login")
+def login(credentials: UserLogin, db: Session = Depends(get_db)):
+    """LOGIN: confere email e senha e devolve um token (em construção)."""
+    email = credentials.email.lower()
+
+    user = db.query(UserModel).filter(UserModel.email == email).first()
+
+    if user is None:
+        raise HTTPException(status_code=401, detail="E-mail ou senha incorretos")
+
+    return {"etapa": "usuario encontrado"}
