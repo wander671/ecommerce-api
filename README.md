@@ -38,7 +38,8 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 - ✅ Validações do cadastro: e-mail repetido (409), senha curta e e-mail inválido (422)
 - ✅ Configurações sensíveis (chave secreta) lidas de arquivo `.env`, fora do código
 - ✅ Geração de token JWT assinado, com tempo de expiração configurável
-- 🔄 Login e autenticação com token JWT (em desenvolvimento)
+- ✅ Login (`POST /login`) com conferência da senha e devolução de token JWT
+- 🔄 Bloqueio de contas desativadas no login (pendente)
 
 **Geral**
 - ✅ Documentação interativa automática (Swagger UI)
@@ -106,6 +107,7 @@ http://localhost:8000/docs
 | DELETE | `/categories/{id}`     | Remove uma categoria          |
 | PUT    | `/categories/{id}`     | Atualiza uma categoria        |
 | POST   | `/users`               | Cadastra um novo usuário      |
+| POST   | `/login`               | Faz login e devolve um token  |
 
 ## 🗺️ Roadmap de evolução
 
@@ -122,8 +124,8 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
   - [x] Configuração segura da chave secreta via `.env`
   - [x] Geração do token
   - [x] Schemas de login e de resposta do token
-  - [x] Rota de login: busca do usuário pelo e-mail
-  - [ ] Rota de login
+  - [x] Rota de login: busca do usuário, conferência da senha e devolução do token
+  - [ ] Bloqueio de usuários inativos no login
   - [ ] Proteção de rotas
   - [ ] Carrinho e pedidos
   - [ ] Testes automatizados
@@ -159,6 +161,7 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - "Bearer" significa "portador": quem porta o token é aceito, e ele viaja no cabeçalho `Authorization`
 - O login responde com a mesma mensagem para e-mail inexistente e para senha errada, para a API não revelar quais e-mails estão cadastrados
 - Login usa `POST`, para os dados não irem na URL e ficarem registrados em históricos e logs
+- Em Python, dar a uma variável o mesmo nome de uma função que será chamada na mesma função causa `UnboundLocalError`: o Python trata o nome como variável local desde a primeira linha
 
 ## 👤 Autor
 

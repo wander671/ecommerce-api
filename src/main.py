@@ -308,9 +308,9 @@ def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 
-@app.post("/login")
+@app.post("/login", response_model=Token)
 def login(credentials: UserLogin, db: Session = Depends(get_db)):
-    """LOGIN: confere email e senha e devolve um token (em construção)."""
+    """LOGIN: confere email e senha e devolve um token"""
     email = credentials.email.lower()
 
     user = db.query(UserModel).filter(UserModel.email == email).first()
@@ -318,4 +318,11 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     if user is None:
         raise HTTPException(status_code=401, detail="E-mail ou senha incorretos")
 
-    return {"etapa": "usuario encontrado"}
+    if not verify_password(credentials.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="E-mail ou senha incorretos")
+
+    access_token = create_access_token(subject=user.email)
+
+    return Token(access_token=access_token)
+
+    
