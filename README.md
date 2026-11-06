@@ -39,7 +39,7 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 - ✅ Configurações sensíveis (chave secreta) lidas de arquivo `.env`, fora do código
 - ✅ Geração de token JWT assinado, com tempo de expiração configurável
 - ✅ Login (`POST /login`) com conferência da senha e devolução de token JWT
-- 🔄 Bloqueio de contas desativadas no login (pendente)
+- ✅ Bloqueio de contas desativadas no login (retorna 403, só depois de a senha ser conferida)
 
 **Geral**
 - ✅ Documentação interativa automática (Swagger UI)
@@ -125,7 +125,7 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
   - [x] Geração do token
   - [x] Schemas de login e de resposta do token
   - [x] Rota de login: busca do usuário, conferência da senha e devolução do token
-  - [ ] Bloqueio de usuários inativos no login
+  - [x] Bloqueio de usuários inativos no login
   - [ ] Proteção de rotas
   - [ ] Carrinho e pedidos
   - [ ] Testes automatizados
@@ -162,6 +162,8 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - O login responde com a mesma mensagem para e-mail inexistente e para senha errada, para a API não revelar quais e-mails estão cadastrados
 - Login usa `POST`, para os dados não irem na URL e ficarem registrados em históricos e logs
 - Em Python, dar a uma variável o mesmo nome de uma função que será chamada na mesma função causa `UnboundLocalError`: o Python trata o nome como variável local desde a primeira linha
+- 401 significa "não consegui confirmar quem você é" e 403 significa "sei quem você é, mas você não tem permissão"
+- No login, a checagem de conta ativa vem depois da senha: assim, quem não sabe a senha não descobre quais contas existem ou estão desativadas
 
 ## 👤 Autor
 
