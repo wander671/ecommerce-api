@@ -5,7 +5,8 @@ from typing import Optional
 
 from src.database import Base, engine, get_db
 from src.models import ProductModel, CategoryModel, UserModel
-from src.security import hash_password, verify_password, create_access_token
+from src.security import hash_password, verify_password, create_access_token, decode_access_token
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 
 # Cria as tabelas no banco se elas ainda não existirem.
@@ -328,4 +329,19 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
 
     return Token(access_token=access_token)
 
+
+bearer_scheme = HTTPBearer() # instância do esquema de autenticação Bearer, que vai extrair o token do cabeçalho Authorization.
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme), db: Session = Depends(get_db),) -> UserModel:
+    """Descobre quem é o usuário que está fazendo a requisição, a partir do token JWT."""
+    email = decode_access_token(credentials.credentials)
+
+    if email is None: 
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado", headers={"WWW-Authenticate": "Bearer"})
+
+    user = db.query(UserModel).filter(UserModel.email == email).first()
     
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado", headers={"WWW-Authenticate": "Bearer"})
+
+    return user

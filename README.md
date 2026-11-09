@@ -126,6 +126,8 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
   - [x] Schemas de login e de resposta do token
   - [x] Rota de login: busca do usuário, conferência da senha e devolução do token
   - [x] Bloqueio de usuários inativos no login
+  - [x] Leitura e conferência do token (assinatura e validade)
+  - [x] Função que descobre o usuário logado a partir do token
   - [ ] Proteção de rotas
   - [ ] Carrinho e pedidos
   - [ ] Testes automatizados
@@ -164,6 +166,9 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - Em Python, dar a uma variável o mesmo nome de uma função que será chamada na mesma função causa `UnboundLocalError`: o Python trata o nome como variável local desde a primeira linha
 - 401 significa "não consegui confirmar quem você é" e 403 significa "sei quem você é, mas você não tem permissão"
 - No login, a checagem de conta ativa vem depois da senha: assim, quem não sabe a senha não descobre quais contas existem ou estão desativadas
+- Ao ler um token, a lista de algoritmos aceitos é fixada no servidor, para quem envia o token não poder escolher como ele é conferido
+- Mesmo com token válido, o usuário é buscado no banco a cada requisição: assim uma conta apagada ou desativada deixa de entrar antes de o token expirar
+- Token inválido, vencido ou adulterado recebem a mesma resposta (401), sem detalhar o motivo
 
 ## 👤 Autor
 

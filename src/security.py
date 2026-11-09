@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import bcrypt
-from jose import jwt
+from jose import JWTError, jwt
 from src.config import settings
 
 def hash_password(password: str) -> str:
@@ -54,3 +54,15 @@ def create_access_token(subject: str) -> str:
     # Aqui o token é montado e ASSINADO com a chave secreta.
     # O resultado é o texto de três partes separadas por ponto
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+def decode_access_token(token: str) -> str | None:
+    """"Confere um token JWT. Devolve o e-mail dele, ou None se for inválido."""
+    try:
+        # Aqui o token é decodificado e a assinatura conferida.
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+    except JWTError:
+        return None
+
+    return payload.get("sub") # Devolver o e-email do token, que é o "subject" que colocamos lá em cima.
