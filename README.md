@@ -1,19 +1,23 @@
 # 🛒 E-commerce API
 
-API REST para um sistema de e-commerce, construída como projeto de estudo com evolução progressiva de arquitetura — do nível júnior ao sênior.
+API REST para um sistema de e-commerce, construída como projeto de estudo com evolução progressiva de arquitetura — do nível estágio ao sênior.
 
-## 📌 Status atual: Nível Júnior
+## 📌 Status atual: Nível Pleno (em andamento) 🚧
 
-CRUD completo de produtos com persistência real em banco de dados relacional.
+CRUD de produtos e categorias com persistência em PostgreSQL, cadastro de usuários, login com token JWT e a primeira rota protegida.
+
+> ⚠️ As rotas de escrita de produtos e categorias (criar, alterar, apagar) ainda **não exigem login**. Protegê-las é o próximo passo do roadmap.
 
 ## 🚀 Tecnologias
 
-- **[FastAPI](https://fastapi.tiangolo.com/)** — framework web assíncrono em Python
+- **[FastAPI](https://fastapi.tiangolo.com/)** — framework web em Python
+- **[Pydantic](https://docs.pydantic.dev/)** — validação de dados e configurações
 - **[SQLAlchemy](https://www.sqlalchemy.org/)** — ORM para comunicação com o banco de dados
 - **[PostgreSQL](https://www.postgresql.org/)** — banco de dados relacional
 - **[Docker](https://www.docker.com/)** — containerização do banco de dados
 - **[Poetry](https://python-poetry.org/)** — gerenciamento de dependências
 - **[bcrypt](https://pypi.org/project/bcrypt/)** — hash seguro de senhas
+- **[python-jose](https://pypi.org/project/python-jose/)** — geração e conferência de tokens JWT
 
 ## 📋 Funcionalidades
 
@@ -31,19 +35,20 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 - ✅ Validação: produto só pode ser criado com categoria existente
 - ✅ Bloqueio de exclusão de categoria com produtos (retorna 409)
 
-**Usuários**
+**Usuários e autenticação**
 - ✅ Cadastro de usuário (`POST /users`), com e-mail normalizado em minúsculas
 - ✅ Senha guardada como hash bcrypt, nunca em texto puro
 - ✅ A resposta da API nunca devolve a senha nem o hash
 - ✅ Validações do cadastro: e-mail repetido (409), senha curta e e-mail inválido (422)
-- ✅ Configurações sensíveis (chave secreta) lidas de arquivo `.env`, fora do código
 - ✅ Geração de token JWT assinado, com tempo de expiração configurável
 - ✅ Login (`POST /login`) com conferência da senha e devolução de token JWT
 - ✅ Bloqueio de contas desativadas no login (retorna 403, só depois de a senha ser conferida)
+- ✅ Rota protegida `GET /users/me`: devolve os dados do usuário logado, só com token válido
 
 **Geral**
 - ✅ Documentação interativa automática (Swagger UI)
 - ✅ Persistência real em PostgreSQL
+- ✅ Configurações sensíveis (chave secreta) lidas de arquivo `.env`, fora do código
 
 ## 🏗️ Como rodar o projeto localmente
 
@@ -57,8 +62,8 @@ CRUD completo de produtos com persistência real em banco de dados relacional.
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/SEU_USUARIO/ecommerce.git
-cd ecommerce
+git clone https://github.com/wander671/ecommerce-api.git
+cd ecommerce-api
 ```
 
 2. Instale as dependências:
@@ -87,27 +92,26 @@ docker compose up -d
 poetry run python run.py
 ```
 
-5. Acesse a documentação interativa:
-http://localhost:8000/docs
-
+6. Acesse a documentação interativa em `http://localhost:8000/docs`
 
 ## 📚 Endpoints disponíveis
 
-| Método | Rota                  | Descrição                     |
-|--------|------------------------|--------------------------------|
-| GET    | `/health`              | Verifica se a API está no ar  |
-| GET    | `/products`            | Lista todos os produtos       |
-| GET    | `/products/{id}`       | Busca um produto por ID       |
-| POST   | `/products`            | Cria um novo produto          |
-| PUT    | `/products/{id}`       | Atualiza um produto           |
-| DELETE | `/products/{id}`       | Remove um produto             |
-| GET    | `/categories`          | Lista todas as categorias     |
-| GET    | `/categories/{id}`     | Busca uma categoria por ID    |
-| POST   | `/categories`          | Cria uma nova categoria       |
-| DELETE | `/categories/{id}`     | Remove uma categoria          |
-| PUT    | `/categories/{id}`     | Atualiza uma categoria        |
-| POST   | `/users`               | Cadastra um novo usuário      |
-| POST   | `/login`               | Faz login e devolve um token  |
+| Método | Rota                | Descrição                             |
+|--------|---------------------|---------------------------------------|
+| GET    | `/health`           | Verifica se a API está no ar          |
+| GET    | `/products`         | Lista todos os produtos               |
+| GET    | `/products/{id}`    | Busca um produto por ID               |
+| POST   | `/products`         | Cria um novo produto                  |
+| PUT    | `/products/{id}`    | Atualiza um produto                   |
+| DELETE | `/products/{id}`    | Remove um produto                     |
+| GET    | `/categories`       | Lista todas as categorias             |
+| GET    | `/categories/{id}`  | Busca uma categoria por ID            |
+| POST   | `/categories`       | Cria uma nova categoria               |
+| PUT    | `/categories/{id}`  | Atualiza uma categoria                |
+| DELETE | `/categories/{id}`  | Remove uma categoria                  |
+| POST   | `/users`            | Cadastra um novo usuário              |
+| POST   | `/login`            | Faz login e devolve um token          |
+| GET    | `/users/me`         | Dados do usuário logado (exige token) |
 
 ## 🗺️ Roadmap de evolução
 
@@ -116,31 +120,32 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - [x] **Nível Estágio** — CRUD básico com dados em memória
 - [x] **Nível Júnior** — Persistência real com PostgreSQL + SQLAlchemy
 - [ ] **Nível Pleno** — Em andamento 🚧
-    - [x] Relacionamento entre tabelas (Produtos ↔ Categorias)
+  - [x] Relacionamento entre tabelas (Produtos ↔ Categorias)
   - [x] CRUD completo de categorias, com bloqueio de exclusão
   - [x] Cadastro de usuários com hash de senha
-  - [x] Configuração segura da chave secreta via `.env`
-  - [ ] Login e autenticação JWT
-  - [x] Configuração segura da chave secreta via `.env`
-  - [x] Geração do token
-  - [x] Schemas de login e de resposta do token
-  - [x] Rota de login: busca do usuário, conferência da senha e devolução do token
-  - [x] Bloqueio de usuários inativos no login
-  - [x] Leitura e conferência do token (assinatura e validade)
-  - [x] Função que descobre o usuário logado a partir do token
+  - [x] Login e autenticação JWT
+    - [x] Configuração segura da chave secreta via `.env`
+    - [x] Geração do token
+    - [x] Schemas de login e de resposta do token
+    - [x] Rota de login: busca do usuário, conferência da senha e devolução do token
+    - [x] Bloqueio de usuários inativos no login
+    - [x] Leitura e conferência do token (assinatura e validade)
+    - [x] Função que descobre o usuário logado a partir do token
   - [ ] Proteção de rotas
+    - [x] Primeira rota protegida (`GET /users/me`)
+    - [ ] Proteger as rotas de escrita (produtos e categorias)
   - [ ] Carrinho e pedidos
   - [ ] Testes automatizados
 - [ ] **Nível Sênior** — Arquitetura em camadas (Clean Architecture), operações assíncronas, filas de mensagens, cache, observabilidade, migrations com Alembic
-- [ ] **Ideias futuras**
-  - [ ] Chatbot de atendimento com IA
+- 💡 **Ideias futuras**
+  - Chatbot de atendimento com IA
     - Rota `POST /chat`, com a chamada ao modelo feita no backend
     - Chave de API guardada no `.env`
     - Ferramentas de leitura: busca de produtos, estoque e status do pedido do próprio cliente
     - Depende de: login (JWT), carrinho e pedidos
     - Limite de mensagens por usuário, para controlar custo
 
-## 🧠 Aprendizados deste nível
+## 🧠 Aprendizados até aqui
 
 - Configuração de ambiente com Poetry
 - Diferença entre drivers síncronos (`psycopg2`/`psycopg`) e assíncronos para PostgreSQL
@@ -169,6 +174,7 @@ Este projeto está sendo construído em níveis progressivos de complexidade, co
 - Ao ler um token, a lista de algoritmos aceitos é fixada no servidor, para quem envia o token não poder escolher como ele é conferido
 - Mesmo com token válido, o usuário é buscado no banco a cada requisição: assim uma conta apagada ou desativada deixa de entrar antes de o token expirar
 - Token inválido, vencido ou adulterado recebem a mesma resposta (401), sem detalhar o motivo
+- Com `Depends(get_current_user)`, o FastAPI executa a conferência do token antes da rota: se ela falhar, a rota nem chega a rodar
 
 ## 👤 Autor
 

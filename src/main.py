@@ -345,3 +345,9 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_
         raise HTTPException(status_code=404, detail="Usuário não encontrado", headers={"WWW-Authenticate": "Bearer"})
 
     return user
+
+
+@app.get("/users/me", response_model=User)
+def read_current_user(current_user: UserModel = Depends(get_current_user)):
+    """Endpoint protegido: devolve os dados do usuário logado."""
+    return current_user
